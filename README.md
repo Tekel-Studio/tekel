@@ -141,3 +141,5 @@ tekeldb list tasks --format csv     # CSV with headers
 ## License
 
 MIT
+
+#### Note: I don't know how i got here, i just wanted to make games. It's all downhill from here. May god help us all
