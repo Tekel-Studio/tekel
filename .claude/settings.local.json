@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /c/Dev/tekeldb log --oneline -20)",
+      "Bash(pip install:*)",
+      "Read(//tmp/**)",
+      "Bash(tekeldb create:*)",
+      "Bash(tekeldb show:*)",
+      "Bash(tekeldb list:*)",
+      "Bash(tekeldb status:*)",
+      "Bash(tekeldb edit:*)",
+      "Bash(tekeldb validate:*)",
+      "Bash(tekeldb delete:*)",
+      "Bash(tekeldb schema:*)",
+      "Bash(python -m pytest tests/ -v)"
+    ]
+  }
+}
