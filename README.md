@@ -1,8 +1,12 @@
 # tekeldb
 
-A schema-driven, flat-file document database.
+structured, queryable, schema-validated data that lives in your repo and flows through your pipelines.
 
-Each document is a YAML file. Each collection is a directory. The `.tekeldb/` folder is the entire database. A CLI provides CRUD operations, structured queries, and schema validation. No server, no daemon, no dependencies beyond Python.
+tekeldb gives any Git repository a built-in, schema-validated, queryable document database — no server, no driver, just files that flow through your existing pipelines.
+
+Each document is a YAML file. Each collection is a directory. The `.tekeldb/` folder is the entire database. A CLI provides schema validation, structured queries, and formatted output. No server, no daemon, no dependencies beyond Python.
+
+tekeldb does not write your data. You write it — by hand, by script, by agent. tekeldb validates it, queries it, and gates it in CI/CD.
 
 ## Install
 
@@ -16,10 +20,8 @@ pip install -e .
 # Initialize with the built-in project management schema
 tekeldb init --schema pm
 
-# Create documents
-tekeldb create tasks "Design landing page" --assignee elif --priority high
-tekeldb create tasks "Fix login bug" --priority critical --assignee mehmet
-tekeldb create contacts "Elif Yilmaz" --email elif@co.com --company "Acme Corp"
+# Documents are written by you — YAML files in .tekeldb/data/<collection>/
+# Use any tool: vim, scripts, AI agents, sed, yq, etc.
 
 # View a document
 tekeldb show TASK-0001
@@ -32,15 +34,9 @@ tekeldb list tasks title:~landing                     # title contains "landing"
 tekeldb list tasks status:!done --format json         # not-done as JSON
 tekeldb list tasks --sort -priority --limit 5         # top 5 by priority
 
-# Edit with transition validation
-tekeldb edit TASK-0001 --status in-progress
-tekeldb edit TASK-0001 --assignee mehmet --priority critical
-
-# Delete
-tekeldb delete TASK-0001
-
 # Validate all documents against the schema
 tekeldb validate
+tekeldb validate --fix                                # auto-correct fixable issues
 
 # Database summary
 tekeldb status
@@ -52,7 +48,6 @@ tekeldb status
 .tekeldb/
 ├── schema.yaml          # Entity definitions, field types, rules
 ├── config.yaml          # Database settings
-├── counters.yaml        # Auto-increment state
 └── data/
     ├── tasks/
     │   ├── TASK-0001.yaml
@@ -87,6 +82,7 @@ collections:
       assignee: { type: string }
       due: { type: date }
       tags: { type: list, items: string }
+      payload: { type: any }
     transitions:
       status:
         open: [in-progress, backlog]
@@ -95,9 +91,9 @@ collections:
         done: [archived]
 ```
 
-**Field types:** `string`, `text`, `integer`, `float`, `boolean`, `date`, `datetime`, `enum`, `list`, `object`
+**Field types:** `string`, `text`, `integer`, `float`, `boolean`, `date`, `datetime`, `enum`, `list`, `object`, `any`
 
-**Field options:** `required`, `default`, `auto` (datetime), `min`/`max`, `format` (email/url), `values` (enum), `unique`
+**Field options:** `required`, `default`, `auto` (datetime), `min`/`max`, `format` (email/url), `values` (enum), `unique`, `additional_fields` (per collection, default: true)
 
 Run `tekeldb init` without `--schema` for schema-free mode (any YAML, no validation).
 
@@ -129,14 +125,44 @@ tekeldb list tasks --format csv     # CSV with headers
 | Command | Description |
 |---------|-------------|
 | `tekeldb init [--schema name\|path]` | Create a new database |
-| `tekeldb create <collection> <title> [--field value ...]` | Create a document |
 | `tekeldb show <id>` | Display a document |
 | `tekeldb list <collection> [filters] [--sort field] [--format fmt] [--limit n]` | Query documents |
-| `tekeldb edit <id> [--field value ...]` | Update a document |
-| `tekeldb delete <id> [--yes]` | Delete a document |
 | `tekeldb validate [--collection name] [--fix]` | Validate against schema |
 | `tekeldb status` | Database summary |
 | `tekeldb schema show` | Print the schema |
+
+## Works with Unix Tools
+
+Because documents are plain YAML files in directories, every standard tool already works:
+
+```bash
+# grep — search across all documents
+grep -rl "assignee: elif" .tekeldb/data/tasks/
+grep -l "priority: critical" .tekeldb/data/tasks/*
+
+# find — locate by file metadata
+find .tekeldb/data/ -name "*.yaml" -mtime -1       # modified today
+find .tekeldb/data/contacts/ -name "*.yaml" | wc -l # count contacts
+
+# yq — YAML-aware queries
+yq '.assignee' .tekeldb/data/tasks/*.yaml | sort -u
+yq '.tags[]' .tekeldb/data/tasks/*.yaml | sort | uniq -c | sort -rn
+
+# sed — bulk edits
+sed -i 's/assignee: elif/assignee: mehmet/' .tekeldb/data/tasks/*.yaml
+
+# xargs — batch operations
+grep -l "status: archived" .tekeldb/data/tasks/* | xargs rm
+
+# git — full audit trail for free
+git log -p .tekeldb/data/tasks/TASK-0001.yaml
+git blame .tekeldb/data/tasks/TASK-0001.yaml
+
+# cat — no CLI needed to read a record
+cat .tekeldb/data/tasks/TASK-0001.yaml
+```
+
+The CLI adds schema validation, typed queries, transition enforcement, and formatted output. For everything else, the file format is the API.
 
 ## License
 

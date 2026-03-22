@@ -1,3 +1,4 @@
+import json
 import re
 from datetime import date, datetime
 
@@ -44,7 +45,10 @@ def _coerce_value(value_str: str):
 def match_document(doc: dict, filters: list[tuple[str, str, str]]) -> bool:
     """Check if a document matches all filters (AND logic)."""
     for field, op, value_str in filters:
-        doc_value = doc.get(field)
+        if "." in field:
+            doc_value = _resolve_dot_notation(doc, field)
+        else:
+            doc_value = doc.get(field)
         if doc_value is None:
             return False
 
@@ -86,6 +90,42 @@ def match_document(doc: dict, filters: list[tuple[str, str, str]]) -> bool:
                 return False
 
     return True
+
+
+def _resolve_dot_notation(doc: dict, field: str):
+    """Resolve dot-notation like 'api_response.event' into nested value.
+
+    Handles both native dicts and JSON strings.
+    """
+    parts = field.split(".")
+    current = doc
+    for part in parts:
+        if isinstance(current, str):
+            try:
+                current = json.loads(current)
+            except (json.JSONDecodeError, TypeError):
+                return None
+        if isinstance(current, dict):
+            current = current.get(part)
+        else:
+            return None
+    return current
+
+
+def text_search(doc: dict, text: str, schema_fields: dict | None = None) -> bool:
+    """Check if any string/text field in doc contains the search text (case-insensitive)."""
+    text_lower = text.lower()
+    for field_name, value in doc.items():
+        if field_name == "id":
+            continue
+        # If schema provided, only search string/text fields
+        if schema_fields and field_name in schema_fields:
+            field_def = schema_fields[field_name]
+            if isinstance(field_def, dict) and field_def.get("type") not in ("string", "text"):
+                continue
+        if isinstance(value, str) and text_lower in value.lower():
+            return True
+    return False
 
 
 def sort_documents(docs: list[dict], sort_field: str) -> list[dict]:

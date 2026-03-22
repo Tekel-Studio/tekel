@@ -1,4 +1,4 @@
-from tekeldb.schema import validate_document, get_first_string_field
+from tekeldb.schema import validate_document
 
 
 TASK_COLLECTION_DEF = {
@@ -84,5 +84,98 @@ def test_invalid_transition():
     assert any("Invalid transition" in e for e in errors)
 
 
-def test_get_first_string_field():
-    assert get_first_string_field(TASK_COLLECTION_DEF) == "title"
+# --- any type ---
+
+
+def test_any_field_type():
+    """Fields with type 'any' should accept any value."""
+    col_def = {
+        "fields": {
+            "title": {"type": "string", "required": True},
+            "payload": {"type": "any"},
+        }
+    }
+    # String value
+    doc = {"id": "X-1", "title": "Test", "payload": "hello"}
+    assert validate_document(doc, col_def) == []
+
+    # Integer value
+    doc["payload"] = 42
+    assert validate_document(doc, col_def) == []
+
+    # List value
+    doc["payload"] = [1, 2, 3]
+    assert validate_document(doc, col_def) == []
+
+    # Dict value
+    doc["payload"] = {"nested": "object"}
+    assert validate_document(doc, col_def) == []
+
+    # None value
+    doc["payload"] = None
+    assert validate_document(doc, col_def) == []
+
+
+# --- additional_fields ---
+
+
+def test_additional_fields_allowed_by_default():
+    """Extra fields should pass validation when additional_fields is not set."""
+    doc = {"id": "TASK-0001", "title": "Test", "status": "open", "extra_field": "hello"}
+    errors = validate_document(doc, TASK_COLLECTION_DEF)
+    assert not any("Unknown field" in e for e in errors)
+
+
+def test_additional_fields_false_rejects_unknown():
+    col_def = {
+        **TASK_COLLECTION_DEF,
+        "additional_fields": False,
+    }
+    doc = {"id": "TASK-0001", "title": "Test", "status": "open", "unknown": "bad"}
+    errors = validate_document(doc, col_def)
+    assert any("Unknown field" in e for e in errors)
+
+
+def test_additional_fields_true_allows_unknown():
+    col_def = {
+        **TASK_COLLECTION_DEF,
+        "additional_fields": True,
+    }
+    doc = {"id": "TASK-0001", "title": "Test", "status": "open", "extra": "fine"}
+    errors = validate_document(doc, col_def)
+    assert not any("Unknown field" in e for e in errors)
+
+
+# --- json field type ---
+
+
+def test_json_field_valid_string():
+    col_def = {"fields": {"data": {"type": "json"}}}
+    doc = {"id": "X-1", "data": '{"key": "value"}'}
+    assert validate_document(doc, col_def) == []
+
+
+def test_json_field_invalid_string():
+    col_def = {"fields": {"data": {"type": "json"}}}
+    doc = {"id": "X-1", "data": "not json {"}
+    errors = validate_document(doc, col_def)
+    assert any("not valid JSON" in e for e in errors)
+
+
+def test_json_field_native_dict():
+    col_def = {"fields": {"data": {"type": "json"}}}
+    doc = {"id": "X-1", "data": {"key": "value"}}
+    assert validate_document(doc, col_def) == []
+
+
+def test_json_field_native_list():
+    col_def = {"fields": {"data": {"type": "json"}}}
+    doc = {"id": "X-1", "data": [1, 2, 3]}
+    assert validate_document(doc, col_def) == []
+
+
+def test_json_field_invalid_type():
+    col_def = {"fields": {"data": {"type": "json"}}}
+    doc = {"id": "X-1", "data": 42}
+    errors = validate_document(doc, col_def)
+    assert any("JSON" in e for e in errors)

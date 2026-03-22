@@ -77,6 +77,45 @@ def format_single(doc: dict) -> str:
     return yaml.safe_dump(doc, default_flow_style=False, sort_keys=False, allow_unicode=True).strip()
 
 
+def format_validation_json(results: list[dict]) -> str:
+    """Format validation results as JSON."""
+    return json.dumps(results, indent=2)
+
+
+def format_validation_junit(results: list[dict]) -> str:
+    """Format validation results as JUnit XML."""
+    total = sum(len(r.get("files", [])) for r in results)
+    failures = sum(
+        sum(1 for f in r.get("files", []) if f.get("errors"))
+        for r in results
+    )
+
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        f'<testsuites>',
+        f'  <testsuite name="tekeldb" tests="{total}" failures="{failures}">',
+    ]
+
+    for r in results:
+        collection = r.get("collection", "unknown")
+        for f in r.get("files", []):
+            doc_id = f.get("id", "unknown")
+            errors = f.get("errors", [])
+            if errors:
+                lines.append(f'    <testcase name="{doc_id}" classname="{collection}">')
+                for e in errors:
+                    # Escape XML special characters
+                    msg = e.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+                    lines.append(f'      <failure message="{msg}"/>')
+                lines.append(f'    </testcase>')
+            else:
+                lines.append(f'    <testcase name="{doc_id}" classname="{collection}"/>')
+
+    lines.append('  </testsuite>')
+    lines.append('</testsuites>')
+    return "\n".join(lines)
+
+
 def _format_value(val) -> str:
     if val is None:
         return ""

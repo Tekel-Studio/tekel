@@ -1,4 +1,4 @@
-from tekeldb.query import parse_filter, match_document, sort_documents
+from tekeldb.query import parse_filter, match_document, sort_documents, text_search
 
 
 def test_parse_filter_exact():
@@ -77,3 +77,41 @@ def test_sort_descending():
     docs = [{"name": "C"}, {"name": "A"}, {"name": "B"}]
     result = sort_documents(docs, "-name")
     assert [d["name"] for d in result] == ["C", "B", "A"]
+
+
+# --- Dot notation (json fields) ---
+
+
+def test_dot_notation_query():
+    doc = {"api_response": '{"event": "push", "repo": "tekeldb"}'}
+    assert match_document(doc, [("api_response.event", "=", "push")])
+    assert not match_document(doc, [("api_response.event", "=", "pull")])
+
+
+def test_dot_notation_native_dict():
+    doc = {"metadata": {"source": "github", "count": 3}}
+    assert match_document(doc, [("metadata.source", "=", "github")])
+
+
+def test_dot_notation_missing():
+    doc = {"title": "Test"}
+    assert not match_document(doc, [("metadata.key", "=", "value")])
+
+
+# --- Text search ---
+
+
+def test_text_search_matches():
+    doc = {"id": "T-1", "title": "Design landing page", "status": "open"}
+    assert text_search(doc, "landing")
+    assert text_search(doc, "LANDING")  # case insensitive
+
+
+def test_text_search_no_match():
+    doc = {"id": "T-1", "title": "Fix bug", "status": "open"}
+    assert not text_search(doc, "landing")
+
+
+def test_text_search_skips_non_string():
+    doc = {"id": "T-1", "title": "Test", "count": 42}
+    assert not text_search(doc, "42")  # 42 is int, not string

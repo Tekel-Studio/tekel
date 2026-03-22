@@ -1,3 +1,4 @@
+import json as json_module
 from pathlib import Path
 import re
 from datetime import date, datetime
@@ -24,18 +25,6 @@ def get_collection_def(schema: dict | None, name: str) -> dict | None:
     if name not in collections:
         raise KeyError(f"Collection '{name}' not found in schema.")
     return collections[name]
-
-
-def get_first_string_field(collection_def: dict) -> str:
-    """Find the first required string field (used for the positional title arg)."""
-    for field_name, field_def in collection_def.get("fields", {}).items():
-        if isinstance(field_def, dict) and field_def.get("type") == "string" and field_def.get("required"):
-            return field_name
-    # Fallback: first string field
-    for field_name, field_def in collection_def.get("fields", {}).items():
-        if isinstance(field_def, dict) and field_def.get("type") == "string":
-            return field_name
-    return "title"
 
 
 def get_collection_by_prefix(schema: dict | None, prefix: str) -> tuple[str, dict] | None:
@@ -67,7 +56,9 @@ def validate_document(doc: dict, collection_def: dict, existing_doc: dict | None
         if field_name in collection_def.get("refs", {}):
             continue
         if field_name not in fields_def:
-            continue  # Allow extra fields silently for now
+            if not collection_def.get("additional_fields", True):
+                errors.append(f"Unknown field: {field_name}")
+            continue
         field_def = fields_def[field_name]
         if isinstance(field_def, dict):
             errors.extend(_validate_field(field_name, value, field_def))
@@ -127,6 +118,9 @@ def _validate_field(field_name: str, value, field_def: dict) -> list[str]:
     ftype = field_def.get("type")
 
     if value is None:
+        return errors
+
+    if ftype == "any":
         return errors
 
     if ftype == "string":
@@ -197,5 +191,14 @@ def _validate_field(field_name: str, value, field_def: dict) -> list[str]:
     elif ftype == "object":
         if not isinstance(value, dict):
             errors.append(f"Field '{field_name}': expected object, got {type(value).__name__}")
+
+    elif ftype == "json":
+        if isinstance(value, str):
+            try:
+                json_module.loads(value)
+            except json_module.JSONDecodeError:
+                errors.append(f"Field '{field_name}': value is not valid JSON")
+        elif not isinstance(value, (dict, list)):
+            errors.append(f"Field '{field_name}': expected JSON string or object, got {type(value).__name__}")
 
     return errors

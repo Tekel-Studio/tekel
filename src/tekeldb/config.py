@@ -3,9 +3,8 @@ import yaml
 
 DEFAULT_CONFIG = {
     "format": "yaml",
-    "id_strategy": "sequential",
     "strict": False,
-    "timestamps": True,
+    "additional_fields": True,
 }
 
 
