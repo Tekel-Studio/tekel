@@ -1,4 +1,4 @@
-from tekeldb.schema import validate_document
+from tekel.schema import validate_document
 
 
 TASK_COLLECTION_DEF = {

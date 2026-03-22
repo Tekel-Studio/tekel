@@ -1,6 +1,6 @@
 import yaml
 from click.testing import CliRunner
-from tekeldb.cli import main
+from tekel.cli import main
 
 
 def test_add_collection(db, runner):
@@ -9,12 +9,12 @@ def test_add_collection(db, runner):
     assert "Added collection" in result.output
 
     # Verify schema updated
-    schema = yaml.safe_load((db / ".tekeldb" / "schema.yaml").read_text())
+    schema = yaml.safe_load((db / ".tekel" / "schema.yaml").read_text())
     assert "sprints" in schema["collections"]
     assert schema["collections"]["sprints"]["id_prefix"] == "SPR"
 
     # Verify data directory created
-    assert (db / ".tekeldb" / "data" / "sprints").is_dir()
+    assert (db / ".tekel" / "data" / "sprints").is_dir()
 
 
 def test_add_collection_already_exists(db, runner):
@@ -28,7 +28,7 @@ def test_add_field(db, runner):
     assert result.exit_code == 0
     assert "Added field" in result.output
 
-    schema = yaml.safe_load((db / ".tekeldb" / "schema.yaml").read_text())
+    schema = yaml.safe_load((db / ".tekel" / "schema.yaml").read_text())
     field = schema["collections"]["tasks"]["fields"]["estimate"]
     assert field["type"] == "integer"
     assert field["min"] == 0
@@ -39,7 +39,7 @@ def test_add_field_required_with_default(db, runner):
     result = runner.invoke(main, ["schema", "add-field", "tasks", "team", "string", "--required", "--default", "core"])
     assert result.exit_code == 0
 
-    schema = yaml.safe_load((db / ".tekeldb" / "schema.yaml").read_text())
+    schema = yaml.safe_load((db / ".tekel" / "schema.yaml").read_text())
     field = schema["collections"]["tasks"]["fields"]["team"]
     assert field["required"] is True
     assert field["default"] == "core"
@@ -49,7 +49,7 @@ def test_add_field_enum_with_values(db, runner):
     result = runner.invoke(main, ["schema", "add-field", "tasks", "size", "enum", "--values", "S,M,L,XL"])
     assert result.exit_code == 0
 
-    schema = yaml.safe_load((db / ".tekeldb" / "schema.yaml").read_text())
+    schema = yaml.safe_load((db / ".tekel" / "schema.yaml").read_text())
     field = schema["collections"]["tasks"]["fields"]["size"]
     assert field["values"] == ["S", "M", "L", "XL"]
 

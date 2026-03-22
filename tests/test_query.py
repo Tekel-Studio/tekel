@@ -1,4 +1,4 @@
-from tekeldb.query import parse_filter, match_document, sort_documents, text_search
+from tekel.query import parse_filter, match_document, sort_documents, text_search
 
 
 def test_parse_filter_exact():
@@ -83,7 +83,7 @@ def test_sort_descending():
 
 
 def test_dot_notation_query():
-    doc = {"api_response": '{"event": "push", "repo": "tekeldb"}'}
+    doc = {"api_response": '{"event": "push", "repo": "tekel"}'}
     assert match_document(doc, [("api_response.event", "=", "push")])
     assert not match_document(doc, [("api_response.event", "=", "pull")])
 

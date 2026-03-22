@@ -1,6 +1,6 @@
 # Saved Views
 
-Views are named, reusable queries stored in `.tekeldb/views.yaml`. Instead of retyping long filter/sort combos, save them once and run by name.
+Views are named, reusable queries stored in `.tekel/views.yaml`. Instead of retyping long filter/sort combos, save them once and run by name.
 
 ## Save a View
 
@@ -8,37 +8,37 @@ Write a query, test it, then save it:
 
 ```bash
 # Test
-tekeldb list tasks status:open priority:high --sort -due
+tekel list tasks status:open priority:high --sort -due
 
 # Save
-tekeldb view save urgent "list tasks status:open priority:high --sort -due"
+tekel view save urgent "list tasks status:open priority:high --sort -due"
 ```
 
 ## Run a View
 
 ```bash
-tekeldb view run urgent
+tekel view run urgent
 
 # Override the output format
-tekeldb view run urgent --format json
+tekel view run urgent --format json
 ```
 
 ## Manage Views
 
 ```bash
 # List all saved views
-tekeldb view list
+tekel view list
 
 # Show a view's definition
-tekeldb view show urgent
+tekel view show urgent
 
 # Delete a view
-tekeldb view delete urgent
+tekel view delete urgent
 ```
 
 ## View Definition Format
 
-Views are stored in `.tekeldb/views.yaml`:
+Views are stored in `.tekel/views.yaml`:
 
 ```yaml
 views:
@@ -70,13 +70,13 @@ You can edit this file directly — it's just YAML.
 
 ```bash
 # Save a view for each team member
-tekeldb view save elif-tasks "list tasks assignee:elif status:!done --sort -priority"
-tekeldb view save mehmet-tasks "list tasks assignee:mehmet status:!done --sort -priority"
+tekel view save elif-tasks "list tasks assignee:elif status:!done --sort -priority"
+tekel view save mehmet-tasks "list tasks assignee:mehmet status:!done --sort -priority"
 
 # Daily standup queries
-tekeldb view save in-progress "list tasks status:in-progress"
-tekeldb view save blocked "list tasks status:review"
+tekel view save in-progress "list tasks status:in-progress"
+tekel view save blocked "list tasks status:review"
 
 # Export views
-tekeldb view run urgent --format csv > urgent-tasks.csv
+tekel view run urgent --format csv > urgent-tasks.csv
 ```

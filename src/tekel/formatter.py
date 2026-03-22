@@ -93,7 +93,7 @@ def format_validation_junit(results: list[dict]) -> str:
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         f'<testsuites>',
-        f'  <testsuite name="tekeldb" tests="{total}" failures="{failures}">',
+        f'  <testsuite name="tekel" tests="{total}" failures="{failures}">',
     ]
 
     for r in results:

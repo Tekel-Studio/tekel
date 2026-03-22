@@ -3,7 +3,7 @@ import os
 import yaml
 from xml.etree import ElementTree
 from click.testing import CliRunner
-from tekeldb.cli import main
+from tekel.cli import main
 
 
 def test_validate_json_output(db, runner):
@@ -18,7 +18,7 @@ def test_validate_json_output(db, runner):
 
 
 def test_validate_json_with_errors(db, runner):
-    doc_path = db / ".tekeldb" / "data" / "tasks" / "TASK-0001.yaml"
+    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
     doc = yaml.safe_load(doc_path.read_text())
     doc["status"] = "invalid"
     with open(doc_path, "w") as f:
@@ -39,12 +39,12 @@ def test_validate_junit_output(db, runner):
     root = ElementTree.fromstring(result.output)
     assert root.tag == "testsuites"
     suite = root.find("testsuite")
-    assert suite.get("name") == "tekeldb"
+    assert suite.get("name") == "tekel"
     assert int(suite.get("failures")) == 0
 
 
 def test_validate_junit_with_failures(db, runner):
-    doc_path = db / ".tekeldb" / "data" / "tasks" / "TASK-0001.yaml"
+    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
     doc = yaml.safe_load(doc_path.read_text())
     doc["status"] = "bad"
     with open(doc_path, "w") as f:
@@ -61,14 +61,14 @@ def test_validate_junit_with_failures(db, runner):
 
 
 def test_validate_files_specific(db, runner):
-    file_path = str(db / ".tekeldb" / "data" / "tasks" / "TASK-0001.yaml")
+    file_path = str(db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml")
     result = runner.invoke(main, ["validate", "--files", file_path])
     assert result.exit_code == 0
     assert "All documents valid" in result.output
 
 
 def test_validate_files_with_error(db, runner):
-    doc_path = db / ".tekeldb" / "data" / "tasks" / "TASK-0001.yaml"
+    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
     doc = yaml.safe_load(doc_path.read_text())
     doc["status"] = "invalid"
     with open(doc_path, "w") as f:

@@ -1,8 +1,8 @@
 # Schema Guide
 
-The schema file (`.tekeldb/schema.yaml`) defines the structure of your data: what collections exist, what fields each document has, what values are valid, and what state transitions are allowed.
+The schema file (`.tekel/schema.yaml`) defines the structure of your data: what collections exist, what fields each document has, what values are valid, and what state transitions are allowed.
 
-If no schema is provided, tekeldb runs in **schema-free mode** — any YAML document is accepted, no validation is performed.
+If no schema is provided, tekel runs in **schema-free mode** — any YAML document is accepted, no validation is performed.
 
 ## Anatomy of a Schema
 
@@ -105,7 +105,7 @@ blocks:
 milestone: MS-0003
 ```
 
-`tekeldb validate` checks that referenced IDs actually exist. Use `tekeldb deps <id>` to inspect relationships.
+`tekel validate` checks that referenced IDs actually exist. Use `tekel deps <id>` to inspect relationships.
 
 ## Transitions
 
@@ -119,24 +119,24 @@ transitions:
     done: []                      # done is a terminal state
 ```
 
-If no transitions are defined, any value change is allowed. `tekeldb validate` checks transition rules when comparing documents against their previous state.
+If no transitions are defined, any value change is allowed. `tekel validate` checks transition rules when comparing documents against their previous state.
 
 ## Managing the Schema
 
 ```bash
 # View current schema
-tekeldb schema show
+tekel schema show
 
 # Add a collection
-tekeldb schema add-collection sprints --id-prefix SPR
+tekel schema add-collection sprints --id-prefix SPR
 
 # Add a field
-tekeldb schema add-field tasks estimate integer --min 0 --max 100
-tekeldb schema add-field tasks size enum --values S,M,L,XL
+tekel schema add-field tasks estimate integer --min 0 --max 100
+tekel schema add-field tasks size enum --values S,M,L,XL
 
 # After editing the schema, migrate existing documents
-tekeldb schema migrate --dry-run     # preview changes
-tekeldb schema migrate --yes         # apply
+tekel schema migrate --dry-run     # preview changes
+tekel schema migrate --yes         # apply
 ```
 
 ## Schema Migration
@@ -154,9 +154,9 @@ When you change the schema, existing documents may not match. `schema migrate` h
 | Removed collection | Warning (directory not deleted) |
 
 ```bash
-tekeldb schema migrate --dry-run          # preview
-tekeldb schema migrate --yes              # apply fixable changes
-tekeldb schema migrate --prune --yes      # also remove unknown fields
+tekel schema migrate --dry-run          # preview
+tekel schema migrate --yes              # apply fixable changes
+tekel schema migrate --prune --yes      # also remove unknown fields
 ```
 
-Backups are saved to `.tekeldb/.migrate-backup/` before any changes.
+Backups are saved to `.tekel/.migrate-backup/` before any changes.

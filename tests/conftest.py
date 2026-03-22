@@ -1,7 +1,7 @@
 import os
 import pytest
 from click.testing import CliRunner
-from tekeldb.cli import main
+from tekel.cli import main
 import yaml
 
 
@@ -12,12 +12,12 @@ def runner():
 
 @pytest.fixture
 def db(tmp_path, runner):
-    """Initialize a tekeldb with the PM schema and pre-populated sample docs."""
+    """Initialize a tekel with the PM schema and pre-populated sample docs."""
     os.chdir(tmp_path)
     result = runner.invoke(main, ["init", "--schema", "pm"])
     assert result.exit_code == 0
 
-    db_path = tmp_path / ".tekeldb"
+    db_path = tmp_path / ".tekel"
     _write_sample_docs(db_path)
     return tmp_path
 

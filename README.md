@@ -1,12 +1,12 @@
-# tekeldb
+# tekel
 
 structured, queryable, schema-validated data that lives in your repo and flows through your pipelines.
 
-tekeldb gives any Git repository a built-in, schema-validated, queryable document database — no server, no driver, just files that flow through your existing pipelines.
+tekel gives any Git repository a built-in, schema-validated, queryable document database — no server, no driver, just files that flow through your existing pipelines.
 
-Each document is a YAML file. Each collection is a directory. The `.tekeldb/` folder is the entire database. A CLI provides schema validation, structured queries, and formatted output. No server, no daemon, no dependencies beyond Python.
+Each document is a YAML file. Each collection is a directory. The `.tekel/` folder is the entire database. A CLI provides schema validation, structured queries, and formatted output. No server, no daemon, no dependencies beyond Python.
 
-tekeldb does not write your data. You write it — by hand, by script, by agent. tekeldb validates it, queries it, and gates it in CI/CD.
+tekel does not write your data. You write it — by hand, by script, by agent. tekel validates it, queries it, and gates it in CI/CD.
 
 ## Install
 
@@ -18,34 +18,34 @@ pip install -e .
 
 ```bash
 # Initialize with the built-in project management schema
-tekeldb init --schema pm
+tekel init --schema pm
 
-# Documents are written by you — YAML files in .tekeldb/data/<collection>/
+# Documents are written by you — YAML files in .tekel/data/<collection>/
 # Use any tool: vim, scripts, AI agents, sed, yq, etc.
 
 # View a document
-tekeldb show TASK-0001
+tekel show TASK-0001
 
 # List and filter
-tekeldb list tasks                                    # all tasks
-tekeldb list tasks status:open priority:high          # open AND high priority
-tekeldb list tasks assignee:elif                      # elif's tasks
-tekeldb list tasks title:~landing                     # title contains "landing"
-tekeldb list tasks status:!done --format json         # not-done as JSON
-tekeldb list tasks --sort -priority --limit 5         # top 5 by priority
+tekel list tasks                                    # all tasks
+tekel list tasks status:open priority:high          # open AND high priority
+tekel list tasks assignee:elif                      # elif's tasks
+tekel list tasks title:~landing                     # title contains "landing"
+tekel list tasks status:!done --format json         # not-done as JSON
+tekel list tasks --sort -priority --limit 5         # top 5 by priority
 
 # Validate all documents against the schema
-tekeldb validate
-tekeldb validate --fix                                # auto-correct fixable issues
+tekel validate
+tekel validate --fix                                # auto-correct fixable issues
 
 # Database summary
-tekeldb status
+tekel status
 ```
 
 ## How It Works
 
 ```
-.tekeldb/
+.tekel/
 ├── schema.yaml          # Entity definitions, field types, rules
 ├── config.yaml          # Database settings
 └── data/
@@ -95,7 +95,7 @@ collections:
 
 **Field options:** `required`, `default`, `auto` (datetime), `min`/`max`, `format` (email/url), `values` (enum), `unique`, `additional_fields` (per collection, default: true)
 
-Run `tekeldb init` without `--schema` for schema-free mode (any YAML, no validation).
+Run `tekel init` without `--schema` for schema-free mode (any YAML, no validation).
 
 ## Filter Operators
 
@@ -114,22 +114,22 @@ Multiple filters are combined with AND logic. For list fields, `field:value` che
 ## Output Formats
 
 ```bash
-tekeldb list tasks --format table   # default, fixed-width columns
-tekeldb list tasks --format yaml    # YAML documents
-tekeldb list tasks --format json    # JSON array
-tekeldb list tasks --format csv     # CSV with headers
+tekel list tasks --format table   # default, fixed-width columns
+tekel list tasks --format yaml    # YAML documents
+tekel list tasks --format json    # JSON array
+tekel list tasks --format csv     # CSV with headers
 ```
 
 ## CLI Reference
 
 | Command | Description |
 |---------|-------------|
-| `tekeldb init [--schema name\|path]` | Create a new database |
-| `tekeldb show <id>` | Display a document |
-| `tekeldb list <collection> [filters] [--sort field] [--format fmt] [--limit n]` | Query documents |
-| `tekeldb validate [--collection name] [--fix]` | Validate against schema |
-| `tekeldb status` | Database summary |
-| `tekeldb schema show` | Print the schema |
+| `tekel init [--schema name\|path]` | Create a new database |
+| `tekel show <id>` | Display a document |
+| `tekel list <collection> [filters] [--sort field] [--format fmt] [--limit n]` | Query documents |
+| `tekel validate [--collection name] [--fix]` | Validate against schema |
+| `tekel status` | Database summary |
+| `tekel schema show` | Print the schema |
 
 ## Works with Unix Tools
 
@@ -137,29 +137,29 @@ Because documents are plain YAML files in directories, every standard tool alrea
 
 ```bash
 # grep — search across all documents
-grep -rl "assignee: elif" .tekeldb/data/tasks/
-grep -l "priority: critical" .tekeldb/data/tasks/*
+grep -rl "assignee: elif" .tekel/data/tasks/
+grep -l "priority: critical" .tekel/data/tasks/*
 
 # find — locate by file metadata
-find .tekeldb/data/ -name "*.yaml" -mtime -1       # modified today
-find .tekeldb/data/contacts/ -name "*.yaml" | wc -l # count contacts
+find .tekel/data/ -name "*.yaml" -mtime -1       # modified today
+find .tekel/data/contacts/ -name "*.yaml" | wc -l # count contacts
 
 # yq — YAML-aware queries
-yq '.assignee' .tekeldb/data/tasks/*.yaml | sort -u
-yq '.tags[]' .tekeldb/data/tasks/*.yaml | sort | uniq -c | sort -rn
+yq '.assignee' .tekel/data/tasks/*.yaml | sort -u
+yq '.tags[]' .tekel/data/tasks/*.yaml | sort | uniq -c | sort -rn
 
 # sed — bulk edits
-sed -i 's/assignee: elif/assignee: mehmet/' .tekeldb/data/tasks/*.yaml
+sed -i 's/assignee: elif/assignee: mehmet/' .tekel/data/tasks/*.yaml
 
 # xargs — batch operations
-grep -l "status: archived" .tekeldb/data/tasks/* | xargs rm
+grep -l "status: archived" .tekel/data/tasks/* | xargs rm
 
 # git — full audit trail for free
-git log -p .tekeldb/data/tasks/TASK-0001.yaml
-git blame .tekeldb/data/tasks/TASK-0001.yaml
+git log -p .tekel/data/tasks/TASK-0001.yaml
+git blame .tekel/data/tasks/TASK-0001.yaml
 
 # cat — no CLI needed to read a record
-cat .tekeldb/data/tasks/TASK-0001.yaml
+cat .tekel/data/tasks/TASK-0001.yaml
 ```
 
 The CLI adds schema validation, typed queries, transition enforcement, and formatted output. For everything else, the file format is the API.

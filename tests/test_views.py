@@ -1,8 +1,8 @@
 import json
 import yaml
 from click.testing import CliRunner
-from tekeldb.cli import main
-from tekeldb.views import parse_view_from_command
+from tekel.cli import main
+from tekel.views import parse_view_from_command
 
 
 def test_view_save_and_run(db, runner):

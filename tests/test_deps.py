@@ -1,12 +1,12 @@
 import yaml
 from click.testing import CliRunner
-from tekeldb.cli import main
+from tekel.cli import main
 
 
 def _add_refs_to_docs(db):
     """Add reference fields to test documents."""
     # Add a milestone
-    ms_dir = db / ".tekeldb" / "data" / "milestones"
+    ms_dir = db / ".tekel" / "data" / "milestones"
     with open(ms_dir / "MS-0001.yaml", "w") as f:
         yaml.safe_dump({
             "id": "MS-0001",
@@ -15,7 +15,7 @@ def _add_refs_to_docs(db):
         }, f, sort_keys=False)
 
     # Update TASK-0001 to reference the milestone and block TASK-0002
-    task_path = db / ".tekeldb" / "data" / "tasks" / "TASK-0001.yaml"
+    task_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
     doc = yaml.safe_load(task_path.read_text())
     doc["milestone"] = "MS-0001"
     doc["blocks"] = ["TASK-0002"]

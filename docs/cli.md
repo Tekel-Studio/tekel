@@ -2,55 +2,55 @@
 
 ## Database Lifecycle
 
-### `tekeldb init`
+### `tekel init`
 
 Create a new database in the current directory.
 
 ```bash
-tekeldb init                    # schema-free mode
-tekeldb init --schema pm        # built-in project management schema
-tekeldb init --schema ./my.yaml # custom schema file
+tekel init                    # schema-free mode
+tekel init --schema pm        # built-in project management schema
+tekel init --schema ./my.yaml # custom schema file
 ```
 
-### `tekeldb status`
+### `tekel status`
 
 Show database summary: name, collections, document counts, status breakdowns.
 
 ```bash
-tekeldb status
+tekel status
 ```
 
-### `tekeldb validate`
+### `tekel validate`
 
 Check documents against the schema.
 
 ```bash
-tekeldb validate                              # all collections
-tekeldb validate --collection tasks           # one collection
-tekeldb validate --fix                        # auto-apply defaults
-tekeldb validate --format json                # JSON output (for CI)
-tekeldb validate --format junit               # JUnit XML output (for CI dashboards)
-tekeldb validate --files path/to/doc.yaml     # validate specific files
+tekel validate                              # all collections
+tekel validate --collection tasks           # one collection
+tekel validate --fix                        # auto-apply defaults
+tekel validate --format json                # JSON output (for CI)
+tekel validate --format junit               # JUnit XML output (for CI dashboards)
+tekel validate --files path/to/doc.yaml     # validate specific files
 ```
 
 Exit codes: `0` = valid, `1` = errors found.
 
 ## Querying
 
-### `tekeldb show`
+### `tekel show`
 
 Display a single document.
 
 ```bash
-tekeldb show TASK-0001
+tekel show TASK-0001
 ```
 
-### `tekeldb list`
+### `tekel list`
 
 List and filter documents in a collection.
 
 ```bash
-tekeldb list <collection> [filters...] [options]
+tekel list <collection> [filters...] [options]
 ```
 
 **Filters** use `field:value` syntax:
@@ -80,89 +80,89 @@ Multiple filters are AND logic. For list fields, `field:value` checks membership
 **Examples:**
 
 ```bash
-tekeldb list tasks                                    # all tasks
-tekeldb list tasks status:open priority:high          # open AND high priority
-tekeldb list tasks assignee:elif tags:design          # elif's design tasks
-tekeldb list tasks title:~landing                     # title contains "landing"
-tekeldb list tasks status:!done --format json         # not-done as JSON
-tekeldb list tasks --sort -priority --limit 5         # top 5 by priority
+tekel list tasks                                    # all tasks
+tekel list tasks status:open priority:high          # open AND high priority
+tekel list tasks assignee:elif tags:design          # elif's design tasks
+tekel list tasks title:~landing                     # title contains "landing"
+tekel list tasks status:!done --format json         # not-done as JSON
+tekel list tasks --sort -priority --limit 5         # top 5 by priority
 ```
 
-### `tekeldb count`
+### `tekel count`
 
 Count documents, optionally grouped.
 
 ```bash
-tekeldb count tasks                           # total count
-tekeldb count tasks status:open               # filtered count
-tekeldb count tasks --group-by status         # count per status
-tekeldb count tasks --group-by assignee       # count per person
+tekel count tasks                           # total count
+tekel count tasks status:open               # filtered count
+tekel count tasks --group-by status         # count per status
+tekel count tasks --group-by assignee       # count per person
 ```
 
-### `tekeldb find`
+### `tekel find`
 
 Full-text search across string and text fields.
 
 ```bash
-tekeldb find "landing page"                   # search all collections
-tekeldb find "elif" --collection contacts     # search one collection
-tekeldb find "bug" --format json              # JSON output
+tekel find "landing page"                   # search all collections
+tekel find "elif" --collection contacts     # search one collection
+tekel find "bug" --format json              # JSON output
 ```
 
-### `tekeldb deps`
+### `tekel deps`
 
 Inspect document references and dependencies.
 
 ```bash
-tekeldb deps TASK-0001                        # show all refs (forward + reverse)
-tekeldb deps TASK-0001 --reverse              # only incoming references
+tekel deps TASK-0001                        # show all refs (forward + reverse)
+tekel deps TASK-0001 --reverse              # only incoming references
 ```
 
-### `tekeldb export`
+### `tekel export`
 
 Export documents from the database.
 
 ```bash
-tekeldb export --format json                          # all collections to stdout
-tekeldb export --collection tasks --format csv        # one collection as CSV
-tekeldb export --collection tasks --output tasks.json # write to file
+tekel export --format json                          # all collections to stdout
+tekel export --collection tasks --format csv        # one collection as CSV
+tekel export --collection tasks --output tasks.json # write to file
 ```
 
 ## Views
 
-Saved views are named, reusable queries stored in `.tekeldb/views.yaml`.
+Saved views are named, reusable queries stored in `.tekel/views.yaml`.
 
 ```bash
 # Save a query
-tekeldb view save open-tasks "list tasks status:open --sort -priority"
+tekel view save open-tasks "list tasks status:open --sort -priority"
 
 # Run it
-tekeldb view run open-tasks
-tekeldb view run open-tasks --format json     # override format
+tekel view run open-tasks
+tekel view run open-tasks --format json     # override format
 
 # Manage
-tekeldb view list                             # list all views
-tekeldb view show open-tasks                  # print view definition
-tekeldb view delete open-tasks                # remove
+tekel view list                             # list all views
+tekel view show open-tasks                  # print view definition
+tekel view delete open-tasks                # remove
 ```
 
 ## Schema Management
 
 ```bash
-tekeldb schema show                                            # print schema
-tekeldb schema add-collection sprints --id-prefix SPR          # add collection
-tekeldb schema add-field tasks estimate integer --min 0         # add field
-tekeldb schema add-field tasks size enum --values S,M,L,XL     # add enum field
-tekeldb schema migrate --dry-run                               # preview migration
-tekeldb schema migrate --yes                                   # apply migration
-tekeldb schema migrate --prune --yes                           # also remove unknown fields
+tekel schema show                                            # print schema
+tekel schema add-collection sprints --id-prefix SPR          # add collection
+tekel schema add-field tasks estimate integer --min 0         # add field
+tekel schema add-field tasks size enum --values S,M,L,XL     # add enum field
+tekel schema migrate --dry-run                               # preview migration
+tekel schema migrate --yes                                   # apply migration
+tekel schema migrate --prune --yes                           # also remove unknown fields
 ```
 
 ## Git Hooks
 
 ```bash
-tekeldb hook install      # install pre-commit hook
-tekeldb hook uninstall    # remove pre-commit hook
+tekel hook install      # install pre-commit hook
+tekel hook uninstall    # remove pre-commit hook
 ```
 
-The pre-commit hook runs `tekeldb validate` on staged YAML files in `.tekeldb/data/`. Invalid documents block the commit.
+The pre-commit hook runs `tekel validate` on staged YAML files in `.tekel/data/`. Invalid documents block the commit.

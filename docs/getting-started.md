@@ -4,12 +4,12 @@
 
 ```bash
 # From source
-git clone https://github.com/youruser/tekeldb.git
-cd tekeldb
+git clone https://github.com/youruser/tekel.git
+cd tekel
 pip install -e .
 
 # Verify
-tekeldb --version
+tekel --version
 ```
 
 ## Create Your First Database
@@ -18,13 +18,13 @@ tekeldb --version
 mkdir my-project && cd my-project
 
 # Initialize with the built-in project management schema
-tekeldb init --schema pm
+tekel init --schema pm
 ```
 
 This creates:
 
 ```
-.tekeldb/
+.tekel/
 ├── schema.yaml     # defines collections, field types, rules
 ├── config.yaml     # database settings
 └── data/
@@ -35,10 +35,10 @@ This creates:
 
 ## Add Documents
 
-tekeldb doesn't write data — you do. Create YAML files directly:
+tekel doesn't write data — you do. Create YAML files directly:
 
 ```yaml
-# .tekeldb/data/tasks/TASK-0001.yaml
+# .tekel/data/tasks/TASK-0001.yaml
 id: TASK-0001
 title: Design landing page
 status: open
@@ -54,46 +54,46 @@ Or use any tool you like — vim, scripts, AI agents, `yq`, `sed`, whatever writ
 ## Validate
 
 ```bash
-tekeldb validate
+tekel validate
 # All documents valid.
 
 # Auto-fix missing defaults
-tekeldb validate --fix
+tekel validate --fix
 ```
 
 ## Query
 
 ```bash
 # List all tasks
-tekeldb list tasks
+tekel list tasks
 
 # Filter
-tekeldb list tasks status:open priority:high
+tekel list tasks status:open priority:high
 
 # Sort and limit
-tekeldb list tasks --sort -priority --limit 5
+tekel list tasks --sort -priority --limit 5
 
 # Output as JSON
-tekeldb list tasks status:!done --format json
+tekel list tasks status:!done --format json
 
 # Full-text search
-tekeldb find "landing page"
+tekel find "landing page"
 
 # Count with grouping
-tekeldb count tasks --group-by status
+tekel count tasks --group-by status
 ```
 
 ## View a Document
 
 ```bash
-tekeldb show TASK-0001
+tekel show TASK-0001
 ```
 
 ## Export
 
 ```bash
-tekeldb export --collection tasks --format json --output tasks.json
-tekeldb export --collection tasks --format csv --output tasks.csv
+tekel export --collection tasks --format json --output tasks.json
+tekel export --collection tasks --format csv --output tasks.csv
 ```
 
 ## What's Next

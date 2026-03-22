@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tekeldb"
+name = "tekel"
 version = "0.2.0"
 description = "Schema validation and query engine for flat-file YAML data"
 requires-python = ">=3.10"
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tekeldb = "tekeldb.cli:main"
+tekel = "tekel.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

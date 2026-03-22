@@ -9,15 +9,15 @@ DEFAULT_CONFIG = {
 
 
 def find_db(start: Path | None = None) -> Path:
-    """Walk up from start (or cwd) to find a .tekeldb directory."""
+    """Walk up from start (or cwd) to find a .tekel directory."""
     current = start or Path.cwd()
     while True:
-        candidate = current / ".tekeldb"
+        candidate = current / ".tekel"
         if candidate.is_dir():
             return candidate
         parent = current.parent
         if parent == current:
-            raise FileNotFoundError("No .tekeldb database found in current or parent directories.")
+            raise FileNotFoundError("No .tekel database found in current or parent directories.")
         current = parent
 
 

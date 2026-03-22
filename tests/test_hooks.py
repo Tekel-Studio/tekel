@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 from click.testing import CliRunner
-from tekeldb.cli import main
-from tekeldb.hooks import install_hook, uninstall_hook, is_hook_installed
+from tekel.cli import main
+from tekel.hooks import install_hook, uninstall_hook, is_hook_installed
 
 
 def test_hook_install(db, runner):
@@ -17,7 +17,7 @@ def test_hook_install(db, runner):
     hook_path = db / ".git" / "hooks" / "pre-commit"
     assert hook_path.exists()
     content = hook_path.read_text()
-    assert "tekeldb" in content
+    assert "tekel" in content
 
 
 def test_hook_uninstall(db, runner):

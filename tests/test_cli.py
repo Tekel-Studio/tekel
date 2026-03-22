@@ -2,7 +2,7 @@ import json
 import os
 import yaml
 from click.testing import CliRunner
-from tekeldb.cli import main
+from tekel.cli import main
 
 
 # --- Init ---
@@ -13,13 +13,13 @@ def test_init_creates_structure(tmp_path):
     os.chdir(tmp_path)
     result = runner.invoke(main, ["init", "--schema", "pm"])
     assert result.exit_code == 0
-    assert (tmp_path / ".tekeldb").is_dir()
-    assert (tmp_path / ".tekeldb" / "schema.yaml").exists()
-    assert (tmp_path / ".tekeldb" / "config.yaml").exists()
-    assert not (tmp_path / ".tekeldb" / "counters.yaml").exists()
-    assert (tmp_path / ".tekeldb" / "data" / "tasks").is_dir()
-    assert (tmp_path / ".tekeldb" / "data" / "milestones").is_dir()
-    assert (tmp_path / ".tekeldb" / "data" / "contacts").is_dir()
+    assert (tmp_path / ".tekel").is_dir()
+    assert (tmp_path / ".tekel" / "schema.yaml").exists()
+    assert (tmp_path / ".tekel" / "config.yaml").exists()
+    assert not (tmp_path / ".tekel" / "counters.yaml").exists()
+    assert (tmp_path / ".tekel" / "data" / "tasks").is_dir()
+    assert (tmp_path / ".tekel" / "data" / "milestones").is_dir()
+    assert (tmp_path / ".tekel" / "data" / "contacts").is_dir()
 
 
 def test_init_schema_free(tmp_path):
@@ -27,7 +27,7 @@ def test_init_schema_free(tmp_path):
     os.chdir(tmp_path)
     result = runner.invoke(main, ["init"])
     assert result.exit_code == 0
-    assert (tmp_path / ".tekeldb").is_dir()
+    assert (tmp_path / ".tekel").is_dir()
 
 
 def test_init_already_exists(db, runner):
@@ -116,7 +116,7 @@ def test_validate_all_valid(db, runner):
 
 
 def test_validate_catches_invalid(db, runner):
-    doc_path = db / ".tekeldb" / "data" / "tasks" / "TASK-0001.yaml"
+    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
     doc = yaml.safe_load(doc_path.read_text())
     doc["status"] = "invalid_status"
     with open(doc_path, "w") as f:
@@ -129,7 +129,7 @@ def test_validate_catches_invalid(db, runner):
 
 def test_validate_fix(db, runner):
     # Remove the status field (has a default of "open")
-    doc_path = db / ".tekeldb" / "data" / "tasks" / "TASK-0001.yaml"
+    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
     doc = yaml.safe_load(doc_path.read_text())
     del doc["status"]
     with open(doc_path, "w") as f:
@@ -171,7 +171,7 @@ def test_additional_fields_allowed_by_default(db, runner):
     result = runner.invoke(main, ["validate"])
     # Our sample docs have 'assignee' and 'tags' which are in schema, plus no extra fields
     # Add an extra field to a doc
-    doc_path = db / ".tekeldb" / "data" / "tasks" / "TASK-0001.yaml"
+    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
     doc = yaml.safe_load(doc_path.read_text())
     doc["custom_note"] = "this is extra"
     with open(doc_path, "w") as f:
@@ -184,14 +184,14 @@ def test_additional_fields_allowed_by_default(db, runner):
 def test_additional_fields_rejected(db, runner):
     """When additional_fields is false, extra fields should be rejected."""
     # Modify the schema to set additional_fields: false on tasks
-    schema_path = db / ".tekeldb" / "schema.yaml"
+    schema_path = db / ".tekel" / "schema.yaml"
     schema = yaml.safe_load(schema_path.read_text())
     schema["collections"]["tasks"]["additional_fields"] = False
     with open(schema_path, "w") as f:
         yaml.safe_dump(schema, f, default_flow_style=False)
 
     # Add an unknown field
-    doc_path = db / ".tekeldb" / "data" / "tasks" / "TASK-0001.yaml"
+    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
     doc = yaml.safe_load(doc_path.read_text())
     doc["unknown_field"] = "should fail"
     with open(doc_path, "w") as f:

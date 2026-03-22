@@ -44,9 +44,9 @@ BUILTIN_SCHEMAS = {
 
 
 @click.group()
-@click.version_option(__version__, prog_name="tekeldb")
+@click.version_option(__version__, prog_name="tekel")
 def main():
-    """tekeldb — Schema validation and query engine for flat-file YAML data."""
+    """tekel — Schema validation and query engine for flat-file YAML data."""
     pass
 
 
@@ -56,10 +56,10 @@ def main():
 @main.command()
 @click.option("--schema", "schema_opt", default=None, help="Built-in schema name or path to schema file.")
 def init(schema_opt):
-    """Create a new tekeldb database in the current directory."""
-    db_path = Path.cwd() / ".tekeldb"
+    """Create a new tekel database in the current directory."""
+    db_path = Path.cwd() / ".tekel"
     if db_path.exists():
-        click.echo("Error: .tekeldb already exists in this directory.", err=True)
+        click.echo("Error: .tekel already exists in this directory.", err=True)
         sys.exit(1)
 
     db_path.mkdir()
@@ -89,7 +89,7 @@ def init(schema_opt):
         for col_name in schema.get("collections", {}):
             ensure_collection_dir(db_path, col_name)
 
-    click.echo(f"Initialized tekeldb database at {db_path}")
+    click.echo(f"Initialized tekel database at {db_path}")
 
 
 @main.command()
@@ -560,7 +560,7 @@ def hook():
 
 @hook.command("install")
 def hook_install():
-    """Install the tekeldb pre-commit hook."""
+    """Install the tekel pre-commit hook."""
     from .hooks import install_hook
     try:
         path = install_hook()
@@ -572,7 +572,7 @@ def hook_install():
 
 @hook.command("uninstall")
 def hook_uninstall():
-    """Remove the tekeldb pre-commit hook."""
+    """Remove the tekel pre-commit hook."""
     from .hooks import uninstall_hook
     try:
         uninstall_hook()
