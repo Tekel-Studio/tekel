@@ -1,0 +1,11 @@
+{
+  "name": "@tekel-studio/tekel",
+  "version": "0.2.0",
+  "description": "Schema validation and query engine for flat-file YAML data",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tekel-Studio/tekel"
+  },
+  "license": "MIT",
+  "keywords": ["yaml", "schema", "validation", "query", "flat-file", "database", "ci-cd"]
+}
