@@ -4,8 +4,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-import yaml
-
 from .collection import collection_dir, ensure_collection_dir, list_documents
 from .document import doc_path, read_document, write_document, apply_defaults
 from .schema import load_schema, get_collection_def, validate_document
@@ -157,7 +155,6 @@ def compute_migrations(schema: dict, db_path: Path) -> list[MigrationAction]:
 
 def apply_migrations(actions: list[MigrationAction], db_path: Path, prune: bool = False) -> tuple[int, int]:
     """Apply fixable migration actions. Returns (applied, skipped) counts."""
-    config_fmt = "yaml"
     applied = 0
     skipped = 0
     backup_dir = db_path / ".migrate-backup"
@@ -180,14 +177,14 @@ def apply_migrations(actions: list[MigrationAction], db_path: Path, prune: bool 
         key = (action.collection, action.doc_id)
         doc_actions.setdefault(key, []).append(action)
 
-    for (col_name, doc_id), acts in doc_actions.items():
-        path = doc_path(db_path, col_name, doc_id, config_fmt)
+    for (col_name, did), acts in doc_actions.items():
+        path = doc_path(db_path, col_name, did)
         if not path.exists():
             continue
 
         # Backup
         backup_dir.mkdir(parents=True, exist_ok=True)
-        backup_path = backup_dir / f"{col_name}_{doc_id}.yaml"
+        backup_path = backup_dir / f"{col_name}_{did}.json"
         shutil.copy2(path, backup_path)
 
         doc = read_document(path)
@@ -230,6 +227,6 @@ def apply_migrations(actions: list[MigrationAction], db_path: Path, prune: bool 
                     applied += 1
 
         if modified:
-            write_document(path, doc, config_fmt)
+            write_document(path, doc)
 
     return applied, skipped

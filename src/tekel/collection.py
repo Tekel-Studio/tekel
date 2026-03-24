@@ -20,14 +20,13 @@ def list_documents(db_path: Path, collection: str) -> list[dict]:
         return []
     docs = []
     for f in sorted(col_dir.iterdir()):
-        if f.suffix in (".yaml", ".json", ".toml") and f.is_file():
+        if f.suffix == ".json" and f.is_file():
             docs.append(read_document(f))
     return docs
 
 
 def find_document_by_id(db_path: Path, schema: dict | None, doc_id: str) -> tuple[Path, dict] | None:
     """Given an ID like TASK-0001, find and return (path, doc)."""
-    # Extract prefix (everything before the last dash-separated segment)
     parts = doc_id.split("-", 1)
     if len(parts) < 2:
         return None
@@ -40,17 +39,15 @@ def find_document_by_id(db_path: Path, schema: dict | None, doc_id: str) -> tupl
         if data_dir.exists():
             for col_dir in data_dir.iterdir():
                 if col_dir.is_dir():
-                    for ext in (".yaml", ".json", ".toml"):
-                        path = col_dir / f"{doc_id}{ext}"
-                        if path.exists():
-                            return path, read_document(path)
+                    path = col_dir / f"{doc_id}.json"
+                    if path.exists():
+                        return path, read_document(path)
         return None
 
     col_name, _ = result
-    for ext in (".yaml", ".json", ".toml"):
-        path = db_path / "data" / col_name / f"{doc_id}{ext}"
-        if path.exists():
-            return path, read_document(path)
+    path = db_path / "data" / col_name / f"{doc_id}.json"
+    if path.exists():
+        return path, read_document(path)
     return None
 
 

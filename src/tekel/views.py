@@ -1,22 +1,23 @@
 """Saved views — named, reusable queries."""
+import json
 from pathlib import Path
-import yaml
 
 
 def load_views(db_path: Path) -> dict:
-    """Load views.yaml. Returns empty dict if not found."""
-    views_file = db_path / "views.yaml"
+    """Load views.json. Returns empty dict if not found."""
+    views_file = db_path / "views.json"
     if not views_file.exists():
         return {}
     with open(views_file) as f:
-        data = yaml.safe_load(f) or {}
+        data = json.load(f) or {}
     return data.get("views", {})
 
 
 def save_views(db_path: Path, views: dict) -> None:
-    """Write views to views.yaml."""
-    with open(db_path / "views.yaml", "w") as f:
-        yaml.safe_dump({"views": views}, f, default_flow_style=False, sort_keys=False)
+    """Write views to views.json."""
+    with open(db_path / "views.json", "w") as f:
+        json.dump({"views": views}, f, indent=2)
+        f.write("\n")
 
 
 def get_view(db_path: Path, name: str) -> dict | None:

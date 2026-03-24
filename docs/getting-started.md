@@ -4,8 +4,8 @@
 
 ```bash
 # From source
-git clone https://github.com/youruser/tekel.git
-cd tekel
+git clone https://github.com/Tekel-Studio/tekeldb.git
+cd tekeldb
 pip install -e .
 
 # Verify
@@ -25,8 +25,8 @@ This creates:
 
 ```
 .tekel/
-├── schema.yaml     # defines collections, field types, rules
-├── config.yaml     # database settings
+├── schema.json     # defines collections, field types, rules
+├── config.json     # database settings
 └── data/
     ├── tasks/
     ├── milestones/
@@ -35,21 +35,21 @@ This creates:
 
 ## Add Documents
 
-tekel doesn't write data — you do. Create YAML files directly:
+tekel doesn't write data — you do. Create JSON files directly:
 
-```yaml
-# .tekel/data/tasks/TASK-0001.yaml
-id: TASK-0001
-title: Design landing page
-status: open
-priority: high
-assignee: elif
-tags:
-  - design
-  - website
+```json
+// .tekel/data/tasks/TASK-0001.json
+{
+  "id": "TASK-0001",
+  "title": "Design landing page",
+  "status": "open",
+  "priority": "high",
+  "assignee": "elif",
+  "tags": ["design", "website"]
+}
 ```
 
-Or use any tool you like — vim, scripts, AI agents, `yq`, `sed`, whatever writes text files.
+Or use any tool you like — scripts, AI agents, `jq`, whatever writes JSON files.
 
 ## Validate
 

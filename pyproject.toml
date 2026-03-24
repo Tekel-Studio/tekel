@@ -5,11 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tekel"
 version = "0.2.0"
-description = "Schema validation and query engine for flat-file YAML data"
+description = "Schema validation and query engine for flat-file JSON data"
 requires-python = ">=3.10"
 dependencies = [
     "click>=8.0",
-    "pyyaml>=6.0",
 ]
 
 [project.scripts]

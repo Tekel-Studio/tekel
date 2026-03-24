@@ -9,7 +9,7 @@ Create a new database in the current directory.
 ```bash
 tekel init                    # schema-free mode
 tekel init --schema pm        # built-in project management schema
-tekel init --schema ./my.yaml # custom schema file
+tekel init --schema ./my.json # custom schema file
 ```
 
 ### `tekel status`
@@ -30,7 +30,7 @@ tekel validate --collection tasks           # one collection
 tekel validate --fix                        # auto-apply defaults
 tekel validate --format json                # JSON output (for CI)
 tekel validate --format junit               # JUnit XML output (for CI dashboards)
-tekel validate --files path/to/doc.yaml     # validate specific files
+tekel validate --files path/to/doc.json     # validate specific files
 ```
 
 Exit codes: `0` = valid, `1` = errors found.
@@ -74,7 +74,7 @@ Multiple filters are AND logic. For list fields, `field:value` checks membership
 | Option | Description |
 |--------|-------------|
 | `--sort <field>` | Sort ascending. Prefix with `-` for descending. |
-| `--format table\|yaml\|json\|csv` | Output format (default: table) |
+| `--format table\|json\|csv` | Output format (default: table) |
 | `--limit <n>` | Limit results |
 
 **Examples:**
@@ -130,7 +130,7 @@ tekel export --collection tasks --output tasks.json # write to file
 
 ## Views
 
-Saved views are named, reusable queries stored in `.tekel/views.yaml`.
+Saved views are named, reusable queries stored in `.tekel/views.json`.
 
 ```bash
 # Save a query
@@ -165,4 +165,4 @@ tekel hook install      # install pre-commit hook
 tekel hook uninstall    # remove pre-commit hook
 ```
 
-The pre-commit hook runs `tekel validate` on staged YAML files in `.tekel/data/`. Invalid documents block the commit.
+The pre-commit hook runs `tekel validate` on staged JSON files in `.tekel/data/`. Invalid documents block the commit.

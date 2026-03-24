@@ -62,12 +62,12 @@ Block invalid commits locally before they reach CI:
 tekel hook install
 ```
 
-This writes a pre-commit hook to `.git/hooks/pre-commit` that validates staged YAML files. Invalid documents block the commit:
+This writes a pre-commit hook to `.git/hooks/pre-commit` that validates staged JSON files. Invalid documents block the commit:
 
 ```
 $ git commit -m "update tasks"
 tekel: validating staged documents...
-TASK-0012.yaml:
+TASK-0012.json:
   - status "wip" is not a valid enum value
 Commit aborted. Run 'tekel validate --fix' to auto-correct fixable issues.
 ```
@@ -103,7 +103,7 @@ validate-data:
 For incremental validation in PRs, pass specific file paths:
 
 ```bash
-tekel validate --files .tekel/data/tasks/TASK-0001.yaml .tekel/data/tasks/TASK-0002.yaml
+tekel validate --files .tekel/data/tasks/TASK-0001.json .tekel/data/tasks/TASK-0002.json
 ```
 
 This is faster than validating the entire database and is what the pre-commit hook uses internally.

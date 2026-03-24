@@ -1,17 +1,18 @@
+import json
 from pathlib import Path
-import yaml
 
 
 def read_document(path: Path) -> dict:
     with open(path) as f:
-        return yaml.safe_load(f) or {}
+        return json.load(f) or {}
 
 
-def write_document(path: Path, doc: dict, fmt: str = "yaml") -> None:
+def write_document(path: Path, doc: dict) -> None:
     """Write document to file. Used by validate --fix and schema migrate."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
-        yaml.safe_dump(doc, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        json.dump(doc, f, indent=2, default=str)
+        f.write("\n")
 
 
 def apply_defaults(doc: dict, collection_def: dict) -> dict:
@@ -24,6 +25,5 @@ def apply_defaults(doc: dict, collection_def: dict) -> dict:
     return doc
 
 
-def doc_path(db_path: Path, collection: str, doc_id: str, fmt: str = "yaml") -> Path:
-    ext = {"yaml": ".yaml", "json": ".json", "toml": ".toml"}.get(fmt, ".yaml")
-    return db_path / "data" / collection / f"{doc_id}{ext}"
+def doc_path(db_path: Path, collection: str, doc_id: str) -> Path:
+    return db_path / "data" / collection / f"{doc_id}.json"

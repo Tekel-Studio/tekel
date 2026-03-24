@@ -1,6 +1,5 @@
 import json
 import os
-import yaml
 from click.testing import CliRunner
 from tekel.cli import main
 
@@ -14,9 +13,8 @@ def test_init_creates_structure(tmp_path):
     result = runner.invoke(main, ["init", "--schema", "pm"])
     assert result.exit_code == 0
     assert (tmp_path / ".tekel").is_dir()
-    assert (tmp_path / ".tekel" / "schema.yaml").exists()
-    assert (tmp_path / ".tekel" / "config.yaml").exists()
-    assert not (tmp_path / ".tekel" / "counters.yaml").exists()
+    assert (tmp_path / ".tekel" / "schema.json").exists()
+    assert (tmp_path / ".tekel" / "config.json").exists()
     assert (tmp_path / ".tekel" / "data" / "tasks").is_dir()
     assert (tmp_path / ".tekel" / "data" / "milestones").is_dir()
     assert (tmp_path / ".tekel" / "data" / "contacts").is_dir()
@@ -116,11 +114,11 @@ def test_validate_all_valid(db, runner):
 
 
 def test_validate_catches_invalid(db, runner):
-    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
-    doc = yaml.safe_load(doc_path.read_text())
+    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.json"
+    doc = json.loads(doc_path.read_text())
     doc["status"] = "invalid_status"
     with open(doc_path, "w") as f:
-        yaml.safe_dump(doc, f)
+        json.dump(doc, f, indent=2)
 
     result = runner.invoke(main, ["validate"])
     assert result.exit_code == 1
@@ -129,17 +127,17 @@ def test_validate_catches_invalid(db, runner):
 
 def test_validate_fix(db, runner):
     # Remove the status field (has a default of "open")
-    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
-    doc = yaml.safe_load(doc_path.read_text())
+    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.json"
+    doc = json.loads(doc_path.read_text())
     del doc["status"]
     with open(doc_path, "w") as f:
-        yaml.safe_dump(doc, f)
+        json.dump(doc, f, indent=2)
 
     result = runner.invoke(main, ["validate", "--fix"])
     assert "Fixed" in result.output
 
     # Verify the fix was applied
-    doc = yaml.safe_load(doc_path.read_text())
+    doc = json.loads(doc_path.read_text())
     assert doc["status"] == "open"
 
 
@@ -169,13 +167,12 @@ def test_schema_show(db, runner):
 def test_additional_fields_allowed_by_default(db, runner):
     """Extra fields not in schema should be allowed by default."""
     result = runner.invoke(main, ["validate"])
-    # Our sample docs have 'assignee' and 'tags' which are in schema, plus no extra fields
     # Add an extra field to a doc
-    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
-    doc = yaml.safe_load(doc_path.read_text())
+    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.json"
+    doc = json.loads(doc_path.read_text())
     doc["custom_note"] = "this is extra"
     with open(doc_path, "w") as f:
-        yaml.safe_dump(doc, f)
+        json.dump(doc, f, indent=2)
 
     result = runner.invoke(main, ["validate"])
     assert result.exit_code == 0
@@ -184,18 +181,18 @@ def test_additional_fields_allowed_by_default(db, runner):
 def test_additional_fields_rejected(db, runner):
     """When additional_fields is false, extra fields should be rejected."""
     # Modify the schema to set additional_fields: false on tasks
-    schema_path = db / ".tekel" / "schema.yaml"
-    schema = yaml.safe_load(schema_path.read_text())
+    schema_path = db / ".tekel" / "schema.json"
+    schema = json.loads(schema_path.read_text())
     schema["collections"]["tasks"]["additional_fields"] = False
     with open(schema_path, "w") as f:
-        yaml.safe_dump(schema, f, default_flow_style=False)
+        json.dump(schema, f, indent=2)
 
     # Add an unknown field
-    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
-    doc = yaml.safe_load(doc_path.read_text())
+    doc_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.json"
+    doc = json.loads(doc_path.read_text())
     doc["unknown_field"] = "should fail"
     with open(doc_path, "w") as f:
-        yaml.safe_dump(doc, f)
+        json.dump(doc, f, indent=2)
 
     result = runner.invoke(main, ["validate"])
     assert result.exit_code == 1
@@ -276,7 +273,6 @@ def test_find_specific_collection(db, runner):
 def test_export_json(db, runner):
     result = runner.invoke(main, ["export", "--collection", "tasks", "--format", "json"])
     assert result.exit_code == 0
-    import json
     docs = json.loads(result.output)
     assert len(docs) == 3
 
@@ -292,6 +288,5 @@ def test_export_to_file(db, runner):
     result = runner.invoke(main, ["export", "--collection", "tasks", "--format", "json", "--output", out_path])
     assert result.exit_code == 0
     assert "Exported" in result.output
-    import json
     data = json.loads((db / "export.json").read_text())
     assert len(data) == 3

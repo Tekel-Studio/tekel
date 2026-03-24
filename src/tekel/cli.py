@@ -1,9 +1,9 @@
+import json
 import shutil
 import sys
 from pathlib import Path
 
 import click
-import yaml
 
 from . import __version__
 from .config import DEFAULT_CONFIG, find_db, load_config, write_config
@@ -33,20 +33,19 @@ from .formatter import (
     format_table,
     format_validation_json,
     format_validation_junit,
-    format_yaml_output,
     get_display_fields,
 )
 
 
 BUILTIN_SCHEMAS = {
-    "pm": "pm.yaml",
+    "pm": "pm.json",
 }
 
 
 @click.group()
 @click.version_option(__version__, prog_name="tekel")
 def main():
-    """tekel — Schema validation and query engine for flat-file YAML data."""
+    """tekel — Schema validation and query engine for flat-file JSON data."""
     pass
 
 
@@ -72,16 +71,17 @@ def init(schema_opt):
     if schema_opt:
         if schema_opt in BUILTIN_SCHEMAS:
             src = Path(__file__).parent / "schemas" / BUILTIN_SCHEMAS[schema_opt]
-            shutil.copy(src, db_path / "schema.yaml")
+            shutil.copy(src, db_path / "schema.json")
         elif Path(schema_opt).exists():
-            shutil.copy(schema_opt, db_path / "schema.yaml")
+            shutil.copy(schema_opt, db_path / "schema.json")
         else:
             click.echo(f"Error: Schema '{schema_opt}' not found.", err=True)
             sys.exit(1)
     else:
         # Empty schema (schema-free mode)
-        with open(db_path / "schema.yaml", "w") as f:
-            yaml.safe_dump({"version": "1.0", "name": "default"}, f)
+        with open(db_path / "schema.json", "w") as f:
+            json.dump({"version": "1.0", "name": "default"}, f, indent=2)
+            f.write("\n")
 
     # Create collection directories from schema
     schema = load_schema(db_path)
@@ -102,7 +102,7 @@ def status():
     name = schema.get("name", "unnamed") if schema else "schema-free"
     click.echo(f"Database: {name}")
     click.echo(f"Location: {db_path}")
-    click.echo(f"Format: {config.get('format', 'yaml')}")
+    click.echo(f"Format: {config.get('format', 'json')}")
     click.echo()
 
     if schema:
@@ -146,7 +146,7 @@ def schema():
 def schema_show():
     """Print the current schema."""
     db_path = find_db()
-    schema_file = db_path / "schema.yaml"
+    schema_file = db_path / "schema.json"
     if schema_file.exists():
         click.echo(schema_file.read_text())
     else:
@@ -159,8 +159,9 @@ def schema_show():
 def schema_add_collection(name, id_prefix):
     """Add a new collection to the schema."""
     db_path = find_db()
-    schema_file = db_path / "schema.yaml"
-    schema_data = yaml.safe_load(schema_file.read_text()) or {}
+    schema_file = db_path / "schema.json"
+    with open(schema_file) as f:
+        schema_data = json.load(f) or {}
 
     if "collections" not in schema_data:
         schema_data["collections"] = {}
@@ -175,7 +176,8 @@ def schema_add_collection(name, id_prefix):
 
     schema_data["collections"][name] = col_def
     with open(schema_file, "w") as f:
-        yaml.safe_dump(schema_data, f, default_flow_style=False, sort_keys=False)
+        json.dump(schema_data, f, indent=2)
+        f.write("\n")
 
     ensure_collection_dir(db_path, name)
     click.echo(f"Added collection '{name}'")
@@ -193,8 +195,9 @@ def schema_add_collection(name, id_prefix):
 def schema_add_field(collection, field_name, field_type, required, default_val, values, min_val, max_val):
     """Add a field to a collection's schema."""
     db_path = find_db()
-    schema_file = db_path / "schema.yaml"
-    schema_data = yaml.safe_load(schema_file.read_text()) or {}
+    schema_file = db_path / "schema.json"
+    with open(schema_file) as f:
+        schema_data = json.load(f) or {}
 
     collections = schema_data.get("collections", {})
     if collection not in collections:
@@ -215,7 +218,8 @@ def schema_add_field(collection, field_name, field_type, required, default_val, 
 
     collections[collection].setdefault("fields", {})[field_name] = field_def
     with open(schema_file, "w") as f:
-        yaml.safe_dump(schema_data, f, default_flow_style=False, sort_keys=False)
+        json.dump(schema_data, f, indent=2)
+        f.write("\n")
 
     click.echo(f"Added field '{field_name}' ({field_type}) to '{collection}'")
 
@@ -300,8 +304,6 @@ def _execute_query(db_path, schema, collection, filters=None, sort_field=None, f
     fields = get_display_fields(col_def) if col_def else None
     if fmt == "table":
         return format_table(docs, fields)
-    elif fmt == "yaml":
-        return format_yaml_output(docs)
     elif fmt == "json":
         return format_json_output(docs)
     elif fmt == "csv":
@@ -313,7 +315,7 @@ def _execute_query(db_path, schema, collection, filters=None, sort_field=None, f
 @click.argument("collection")
 @click.argument("filters", nargs=-1)
 @click.option("--sort", "sort_field", default=None, help="Sort by field. Prefix with - for descending.")
-@click.option("--format", "fmt", default="table", type=click.Choice(["table", "yaml", "json", "csv"]))
+@click.option("--format", "fmt", default="table", type=click.Choice(["table", "json", "csv"]))
 @click.option("--limit", default=0, type=int, help="Limit number of results.")
 def list_cmd(collection, filters, sort_field, fmt, limit):
     """List documents in a collection with optional filters."""
@@ -351,7 +353,7 @@ def count(collection, filters, group_by):
 @main.command()
 @click.argument("text")
 @click.option("--collection", default=None, help="Limit search to one collection.")
-@click.option("--format", "fmt", default="table", type=click.Choice(["table", "yaml", "json"]))
+@click.option("--format", "fmt", default="table", type=click.Choice(["table", "json"]))
 def find(text, collection, fmt):
     """Full-text search across documents."""
     db_path = find_db()
@@ -382,15 +384,13 @@ def find(text, collection, fmt):
     fields = get_display_fields(col_def) if col_def else None
     if fmt == "table":
         click.echo(format_table(matching_docs, fields))
-    elif fmt == "yaml":
-        click.echo(format_yaml_output(matching_docs))
     elif fmt == "json":
         click.echo(format_json_output(matching_docs))
 
 
 @main.command()
 @click.option("--collection", default=None, help="Export only this collection.")
-@click.option("--format", "fmt", default="yaml", type=click.Choice(["yaml", "json", "csv"]))
+@click.option("--format", "fmt", default="json", type=click.Choice(["json", "csv"]))
 @click.option("--output", "output_path", default=None, type=click.Path(), help="Write to file instead of stdout.")
 def export(collection, fmt, output_path):
     """Export documents from the database."""
@@ -416,14 +416,12 @@ def export(collection, fmt, output_path):
     col_def = get_collection_def(schema, collections_to_export[0]) if schema and len(collections_to_export) == 1 else None
     fields = get_display_fields(col_def) if col_def else None
 
-    if fmt == "yaml":
-        output = format_yaml_output(all_docs)
-    elif fmt == "json":
+    if fmt == "json":
         output = format_json_output(all_docs)
     elif fmt == "csv":
         output = format_csv_output(all_docs, fields)
     else:
-        output = format_yaml_output(all_docs)
+        output = format_json_output(all_docs)
 
     if output_path:
         Path(output_path).write_text(output)
@@ -474,7 +472,7 @@ def view():
 
 @view.command("run")
 @click.argument("name")
-@click.option("--format", "fmt", default=None, type=click.Choice(["table", "yaml", "json", "csv"]))
+@click.option("--format", "fmt", default=None, type=click.Choice(["table", "json", "csv"]))
 def view_run(name, fmt):
     """Run a saved view."""
     from .views import get_view
@@ -533,7 +531,7 @@ def view_show_cmd(name):
     if view_def is None:
         click.echo(f"Error: View '{name}' not found.", err=True)
         sys.exit(1)
-    click.echo(yaml.safe_dump(view_def, default_flow_style=False, sort_keys=False).strip())
+    click.echo(json.dumps(view_def, indent=2))
 
 
 @view.command("delete")
@@ -669,8 +667,8 @@ def validate(collection, fix, fmt, files):
                 fixed_doc = apply_defaults(dict(doc), col_def)
                 remaining_errors = validate_document(fixed_doc, col_def)
                 if len(remaining_errors) < len(errors):
-                    path = doc_path(db_path, col_name, doc_id, config.get("format", "yaml"))
-                    write_document(path, fixed_doc, config.get("format", "yaml"))
+                    path = doc_path(db_path, col_name, doc_id)
+                    write_document(path, fixed_doc)
                     if fmt == "text":
                         click.echo(f"  Fixed {doc_id}: applied defaults")
                     errors = remaining_errors

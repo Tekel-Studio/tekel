@@ -1,6 +1,6 @@
 # Saved Views
 
-Views are named, reusable queries stored in `.tekel/views.yaml`. Instead of retyping long filter/sort combos, save them once and run by name.
+Views are named, reusable queries stored in `.tekel/views.json`. Instead of retyping long filter/sort combos, save them once and run by name.
 
 ## Save a View
 
@@ -38,33 +38,32 @@ tekel view delete urgent
 
 ## View Definition Format
 
-Views are stored in `.tekel/views.yaml`:
+Views are stored in `.tekel/views.json`:
 
-```yaml
-views:
-  urgent:
-    collection: tasks
-    filters:
-      - status:open
-      - priority:high
-    sort: -due
-
-  my-tasks:
-    collection: tasks
-    filters:
-      - assignee:elif
-      - status:!done
-    sort: -priority
-    limit: 20
-
-  team-load:
-    collection: tasks
-    filters:
-      - status:!done
-    group_by: assignee
+```json
+{
+  "views": {
+    "urgent": {
+      "collection": "tasks",
+      "filters": ["status:open", "priority:high"],
+      "sort": "-due"
+    },
+    "my-tasks": {
+      "collection": "tasks",
+      "filters": ["assignee:elif", "status:!done"],
+      "sort": "-priority",
+      "limit": 20
+    },
+    "team-load": {
+      "collection": "tasks",
+      "filters": ["status:!done"],
+      "group_by": "assignee"
+    }
+  }
+}
 ```
 
-You can edit this file directly — it's just YAML.
+You can edit this file directly — it's just JSON.
 
 ## Examples
 

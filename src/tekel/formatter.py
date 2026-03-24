@@ -1,7 +1,6 @@
 import csv
 import io
 import json
-import yaml
 
 
 def get_display_fields(collection_def: dict | None) -> list[str]:
@@ -48,13 +47,6 @@ def format_table(docs: list[dict], fields: list[str] | None = None) -> str:
     return "\n".join(lines)
 
 
-def format_yaml_output(docs: list[dict]) -> str:
-    parts = []
-    for doc in docs:
-        parts.append(yaml.safe_dump(doc, default_flow_style=False, sort_keys=False).strip())
-    return "\n---\n".join(parts)
-
-
 def format_json_output(docs: list[dict]) -> str:
     return json.dumps(docs, indent=2, default=str)
 
@@ -74,7 +66,7 @@ def format_csv_output(docs: list[dict], fields: list[str] | None = None) -> str:
 
 def format_single(doc: dict) -> str:
     """Pretty-print a single document."""
-    return yaml.safe_dump(doc, default_flow_style=False, sort_keys=False, allow_unicode=True).strip()
+    return json.dumps(doc, indent=2, default=str)
 
 
 def format_validation_json(results: list[dict]) -> str:

@@ -1,17 +1,16 @@
-import json as json_module
+import json
 from pathlib import Path
 import re
 from datetime import date, datetime
-import yaml
 
 
 def load_schema(db_path: Path) -> dict | None:
-    """Load schema.yaml. Returns None if empty/missing (schema-free mode)."""
-    schema_file = db_path / "schema.yaml"
+    """Load schema.json. Returns None if empty/missing (schema-free mode)."""
+    schema_file = db_path / "schema.json"
     if not schema_file.exists():
         return None
     with open(schema_file) as f:
-        schema = yaml.safe_load(f)
+        schema = json.load(f)
     if not schema or not schema.get("collections"):
         return None
     return schema
@@ -107,10 +106,7 @@ def validate_refs(doc: dict, collection_def: dict, db_path: Path) -> list[str]:
 
 
 def _ref_exists(data_dir: Path, doc_id: str) -> bool:
-    for ext in (".yaml", ".json", ".toml"):
-        if (data_dir / f"{doc_id}{ext}").exists():
-            return True
-    return False
+    return (data_dir / f"{doc_id}.json").exists()
 
 
 def _validate_field(field_name: str, value, field_def: dict) -> list[str]:
@@ -160,24 +156,22 @@ def _validate_field(field_name: str, value, field_def: dict) -> list[str]:
             errors.append(f"Field '{field_name}': expected boolean, got {type(value).__name__}")
 
     elif ftype == "date":
-        if not isinstance(value, (date, datetime)):
-            if isinstance(value, str):
-                try:
-                    date.fromisoformat(value)
-                except ValueError:
-                    errors.append(f"Field '{field_name}': invalid date format")
-            else:
-                errors.append(f"Field '{field_name}': expected date, got {type(value).__name__}")
+        if isinstance(value, str):
+            try:
+                date.fromisoformat(value)
+            except ValueError:
+                errors.append(f"Field '{field_name}': invalid date format")
+        else:
+            errors.append(f"Field '{field_name}': expected date string, got {type(value).__name__}")
 
     elif ftype == "datetime":
-        if not isinstance(value, datetime):
-            if isinstance(value, str):
-                try:
-                    datetime.fromisoformat(value)
-                except ValueError:
-                    errors.append(f"Field '{field_name}': invalid datetime format")
-            else:
-                errors.append(f"Field '{field_name}': expected datetime, got {type(value).__name__}")
+        if isinstance(value, str):
+            try:
+                datetime.fromisoformat(value)
+            except ValueError:
+                errors.append(f"Field '{field_name}': invalid datetime format")
+        else:
+            errors.append(f"Field '{field_name}': expected datetime string, got {type(value).__name__}")
 
     elif ftype == "enum":
         allowed = field_def.get("values", [])
@@ -195,8 +189,8 @@ def _validate_field(field_name: str, value, field_def: dict) -> list[str]:
     elif ftype == "json":
         if isinstance(value, str):
             try:
-                json_module.loads(value)
-            except json_module.JSONDecodeError:
+                json.loads(value)
+            except json.JSONDecodeError:
                 errors.append(f"Field '{field_name}': value is not valid JSON")
         elif not isinstance(value, (dict, list)):
             errors.append(f"Field '{field_name}': expected JSON string or object, got {type(value).__name__}")

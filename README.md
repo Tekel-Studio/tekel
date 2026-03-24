@@ -4,9 +4,9 @@ structured, queryable, schema-validated data that lives in your repo and flows t
 
 tekel gives any Git repository a built-in, schema-validated, queryable document database — no server, no driver, just files that flow through your existing pipelines.
 
-Each document is a YAML file. Each collection is a directory. The `.tekel/` folder is the entire database. A CLI provides schema validation, structured queries, and formatted output. No server, no daemon, no dependencies beyond Python.
+Each document is a JSON file. Each collection is a directory. The `.tekel/` folder is the entire database. A CLI provides schema validation, structured queries, and formatted output. No server, no daemon, no dependencies beyond Python and `click`.
 
-tekel does not write your data. You write it — by hand, by script, by agent. tekel validates it, queries it, and gates it in CI/CD.
+tekel does not write your data. You write it — by script, by agent, by tool call. tekel validates it, queries it, and gates it in CI/CD.
 
 ## Install
 
@@ -20,8 +20,8 @@ pip install -e .
 # Initialize with the built-in project management schema
 tekel init --schema pm
 
-# Documents are written by you — YAML files in .tekel/data/<collection>/
-# Use any tool: vim, scripts, AI agents, sed, yq, etc.
+# Documents are written by you — JSON files in .tekel/data/<collection>/
+# Use any tool: scripts, AI agents, jq, etc.
 
 # View a document
 tekel show TASK-0001
@@ -46,56 +46,64 @@ tekel status
 
 ```
 .tekel/
-├── schema.yaml          # Entity definitions, field types, rules
-├── config.yaml          # Database settings
+├── schema.json          # Entity definitions, field types, rules
+├── config.json          # Database settings
 └── data/
     ├── tasks/
-    │   ├── TASK-0001.yaml
-    │   └── TASK-0002.yaml
+    │   ├── TASK-0001.json
+    │   └── TASK-0002.json
     └── contacts/
-        └── CONT-0001.yaml
+        └── CONT-0001.json
 ```
 
-The files *are* the data. Copy the folder and you've copied the database. Edit a file in vim and you've updated a record. Put it in Git and every change is versioned, diffable, and mergeable.
+The files *are* the data. Copy the folder and you've copied the database. Edit a file and you've updated a record. Put it in Git and every change is versioned, diffable, and mergeable.
 
 ## Schema
 
 The schema defines collections, field types, validation rules, and state transitions:
 
-```yaml
-version: "1.0"
-name: project-management
-
-collections:
-  tasks:
-    id_prefix: TASK
-    fields:
-      title: { type: string, required: true }
-      status:
-        type: enum
-        values: [backlog, open, in-progress, review, done, archived]
-        default: open
-      priority:
-        type: enum
-        values: [low, medium, high, critical]
-        default: medium
-      assignee: { type: string }
-      due: { type: date }
-      tags: { type: list, items: string }
-      payload: { type: any }
-    transitions:
-      status:
-        open: [in-progress, backlog]
-        in-progress: [review, open]
-        review: [done, in-progress]
-        done: [archived]
+```json
+{
+  "version": "1.0",
+  "name": "project-management",
+  "collections": {
+    "tasks": {
+      "id_prefix": "TASK",
+      "fields": {
+        "title": { "type": "string", "required": true },
+        "status": {
+          "type": "enum",
+          "values": ["backlog", "open", "in-progress", "review", "done", "archived"],
+          "default": "open"
+        },
+        "priority": {
+          "type": "enum",
+          "values": ["low", "medium", "high", "critical"],
+          "default": "medium"
+        },
+        "assignee": { "type": "string" },
+        "due": { "type": "date" },
+        "tags": { "type": "list", "items": "string" },
+        "payload": { "type": "any" }
+      },
+      "transitions": {
+        "status": {
+          "open": ["in-progress", "backlog"],
+          "in-progress": ["review", "open"],
+          "review": ["done", "in-progress"],
+          "done": ["archived"]
+        }
+      }
+    }
+  }
+}
 ```
 
-**Field types:** `string`, `text`, `integer`, `float`, `boolean`, `date`, `datetime`, `enum`, `list`, `object`, `any`
+**Field types:** `string`, `text`, `integer`, `float`, `boolean`, `date`, `datetime`, `enum`, `list`, `object`, `json`, `any`
 
 **Field options:** `required`, `default`, `auto` (datetime), `min`/`max`, `format` (email/url), `values` (enum), `unique`, `additional_fields` (per collection, default: true)
 
-Run `tekel init` without `--schema` for schema-free mode (any YAML, no validation).
+Run `tekel init` without `--schema` for schema-free mode (any JSON, no validation).
 
 ## Filter Operators
 
@@ -115,7 +123,6 @@ Multiple filters are combined with AND logic. For list fields, `field:value` che
 
 ```bash
 tekel list tasks --format table   # default, fixed-width columns
-tekel list tasks --format yaml    # YAML documents
 tekel list tasks --format json    # JSON array
 tekel list tasks --format csv     # CSV with headers
 ```
@@ -133,33 +140,33 @@ tekel list tasks --format csv     # CSV with headers
 
 ## Works with Unix Tools
 
-Because documents are plain YAML files in directories, every standard tool already works:
+Because documents are plain JSON files in directories, every standard tool already works:
 
 ```bash
 # grep — search across all documents
-grep -rl "assignee: elif" .tekel/data/tasks/
-grep -l "priority: critical" .tekel/data/tasks/*
+grep -rl '"assignee": "elif"' .tekel/data/tasks/
+grep -l '"priority": "critical"' .tekel/data/tasks/*
 
 # find — locate by file metadata
-find .tekel/data/ -name "*.yaml" -mtime -1       # modified today
-find .tekel/data/contacts/ -name "*.yaml" | wc -l # count contacts
+find .tekel/data/ -name "*.json" -mtime -1       # modified today
+find .tekel/data/contacts/ -name "*.json" | wc -l # count contacts
 
-# yq — YAML-aware queries
-yq '.assignee' .tekel/data/tasks/*.yaml | sort -u
-yq '.tags[]' .tekel/data/tasks/*.yaml | sort | uniq -c | sort -rn
+# jq — JSON-aware queries
+jq '.assignee' .tekel/data/tasks/*.json | sort -u
+jq '.tags[]' .tekel/data/tasks/*.json | sort | uniq -c | sort -rn
 
-# sed — bulk edits
-sed -i 's/assignee: elif/assignee: mehmet/' .tekel/data/tasks/*.yaml
+# jq — bulk edits
+jq '.assignee = "mehmet"' .tekel/data/tasks/TASK-0001.json | sponge .tekel/data/tasks/TASK-0001.json
 
 # xargs — batch operations
-grep -l "status: archived" .tekel/data/tasks/* | xargs rm
+grep -rl '"status": "archived"' .tekel/data/tasks/ | xargs rm
 
 # git — full audit trail for free
-git log -p .tekel/data/tasks/TASK-0001.yaml
-git blame .tekel/data/tasks/TASK-0001.yaml
+git log -p .tekel/data/tasks/TASK-0001.json
+git blame .tekel/data/tasks/TASK-0001.json
 
 # cat — no CLI needed to read a record
-cat .tekel/data/tasks/TASK-0001.yaml
+cat .tekel/data/tasks/TASK-0001.json
 ```
 
 The CLI adds schema validation, typed queries, transition enforcement, and formatted output. For everything else, the file format is the API.
