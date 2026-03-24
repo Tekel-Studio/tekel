@@ -1,8 +1,8 @@
+import json
 from pathlib import Path
-import yaml
 
 DEFAULT_CONFIG = {
-    "format": "yaml",
+    "format": "json",
     "strict": False,
     "additional_fields": True,
 }
@@ -22,14 +22,15 @@ def find_db(start: Path | None = None) -> Path:
 
 
 def load_config(db_path: Path) -> dict:
-    config_file = db_path / "config.yaml"
+    config_file = db_path / "config.json"
     if config_file.exists():
         with open(config_file) as f:
-            user_config = yaml.safe_load(f) or {}
+            user_config = json.load(f) or {}
         return {**DEFAULT_CONFIG, **user_config}
     return dict(DEFAULT_CONFIG)
 
 
 def write_config(db_path: Path, config: dict) -> None:
-    with open(db_path / "config.yaml", "w") as f:
-        yaml.safe_dump(config, f, default_flow_style=False)
+    with open(db_path / "config.json", "w") as f:
+        json.dump(config, f, indent=2)
+        f.write("\n")

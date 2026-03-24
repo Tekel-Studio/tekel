@@ -1,4 +1,4 @@
-import yaml
+import json
 from click.testing import CliRunner
 from tekel.cli import main
 
@@ -7,20 +7,20 @@ def _add_refs_to_docs(db):
     """Add reference fields to test documents."""
     # Add a milestone
     ms_dir = db / ".tekel" / "data" / "milestones"
-    with open(ms_dir / "MS-0001.yaml", "w") as f:
-        yaml.safe_dump({
+    with open(ms_dir / "MS-0001.json", "w") as f:
+        json.dump({
             "id": "MS-0001",
             "title": "Q2 Launch",
             "status": "planned",
-        }, f, sort_keys=False)
+        }, f, indent=2)
 
     # Update TASK-0001 to reference the milestone and block TASK-0002
-    task_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.yaml"
-    doc = yaml.safe_load(task_path.read_text())
+    task_path = db / ".tekel" / "data" / "tasks" / "TASK-0001.json"
+    doc = json.loads(task_path.read_text())
     doc["milestone"] = "MS-0001"
     doc["blocks"] = ["TASK-0002"]
     with open(task_path, "w") as f:
-        yaml.safe_dump(doc, f, sort_keys=False)
+        json.dump(doc, f, indent=2)
 
 
 def test_deps_forward(db, runner):

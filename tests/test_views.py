@@ -1,5 +1,4 @@
 import json
-import yaml
 from click.testing import CliRunner
 from tekel.cli import main
 from tekel.views import parse_view_from_command

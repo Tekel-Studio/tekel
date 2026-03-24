@@ -1,0 +1,80 @@
+{
+  "version": "1.0",
+  "name": "project-management",
+  "collections": {
+    "tasks": {
+      "id_prefix": "TASK",
+      "fields": {
+        "title": {
+          "type": "string",
+          "required": true
+        },
+        "status": {
+          "type": "enum",
+          "values": ["backlog", "open", "in-progress", "review", "done", "archived"],
+          "default": "open",
+          "required": true
+        },
+        "assignee": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "enum",
+          "values": ["low", "medium", "high", "critical"],
+          "default": "medium"
+        },
+        "due": {
+          "type": "date"
+        },
+        "tags": {
+          "type": "list",
+          "items": "string"
+        },
+        "description": {
+          "type": "text"
+        },
+        "story_points": {
+          "type": "integer",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "refs": {
+        "blocks": { "collection": "tasks", "type": "many" },
+        "milestone": { "collection": "milestones", "type": "one" }
+      },
+      "transitions": {
+        "status": {
+          "backlog": ["open"],
+          "open": ["in-progress", "backlog"],
+          "in-progress": ["review", "open"],
+          "review": ["done", "in-progress"],
+          "done": ["archived"]
+        }
+      }
+    },
+    "milestones": {
+      "id_prefix": "MS",
+      "fields": {
+        "title": { "type": "string", "required": true },
+        "status": {
+          "type": "enum",
+          "values": ["planned", "active", "completed"],
+          "default": "planned"
+        },
+        "target_date": { "type": "date" }
+      }
+    },
+    "contacts": {
+      "id_prefix": "CONT",
+      "fields": {
+        "name": { "type": "string", "required": true },
+        "email": { "type": "string", "format": "email" },
+        "company": { "type": "string" },
+        "role": { "type": "string" },
+        "phone": { "type": "string" },
+        "notes": { "type": "text" }
+      }
+    }
+  }
+}

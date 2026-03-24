@@ -5,8 +5,8 @@ import stat
 
 HOOK_SCRIPT = """\
 #!/bin/sh
-# tekel pre-commit hook — validates staged YAML documents against schema
-STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep '\\.tekel/data/.*\\.yaml$' || true)
+# tekel pre-commit hook — validates staged JSON documents against schema
+STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep '\\.tekel/data/.*\\.json$' || true)
 if [ -n "$STAGED" ]; then
     echo "tekel: validating staged documents..."
     tekel validate --files $STAGED

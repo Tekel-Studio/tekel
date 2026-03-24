@@ -1,8 +1,8 @@
+import json
 import os
 import pytest
 from click.testing import CliRunner
 from tekel.cli import main
-import yaml
 
 
 @pytest.fixture
@@ -22,15 +22,16 @@ def db(tmp_path, runner):
     return tmp_path
 
 
-def _write_yaml(path, data):
+def _write_json(path, data):
     with open(path, "w") as f:
-        yaml.safe_dump(data, f, default_flow_style=False, sort_keys=False)
+        json.dump(data, f, indent=2)
+        f.write("\n")
 
 
 def _write_sample_docs(db_path):
     tasks_dir = db_path / "data" / "tasks"
 
-    _write_yaml(tasks_dir / "TASK-0001.yaml", {
+    _write_json(tasks_dir / "TASK-0001.json", {
         "id": "TASK-0001",
         "title": "Design landing page",
         "status": "open",
@@ -38,14 +39,14 @@ def _write_sample_docs(db_path):
         "assignee": "elif",
         "tags": ["design", "website"],
     })
-    _write_yaml(tasks_dir / "TASK-0002.yaml", {
+    _write_json(tasks_dir / "TASK-0002.json", {
         "id": "TASK-0002",
         "title": "Fix login bug",
         "status": "open",
         "priority": "critical",
         "assignee": "mehmet",
     })
-    _write_yaml(tasks_dir / "TASK-0003.yaml", {
+    _write_json(tasks_dir / "TASK-0003.json", {
         "id": "TASK-0003",
         "title": "Write tests",
         "status": "done",
@@ -53,7 +54,7 @@ def _write_sample_docs(db_path):
     })
 
     contacts_dir = db_path / "data" / "contacts"
-    _write_yaml(contacts_dir / "CONT-0001.yaml", {
+    _write_json(contacts_dir / "CONT-0001.json", {
         "id": "CONT-0001",
         "name": "Elif Yilmaz",
         "email": "elif@co.com",

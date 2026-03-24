@@ -1,4 +1,4 @@
-import yaml
+import json
 from click.testing import CliRunner
 from tekel.cli import main
 
@@ -9,7 +9,7 @@ def test_add_collection(db, runner):
     assert "Added collection" in result.output
 
     # Verify schema updated
-    schema = yaml.safe_load((db / ".tekel" / "schema.yaml").read_text())
+    schema = json.loads((db / ".tekel" / "schema.json").read_text())
     assert "sprints" in schema["collections"]
     assert schema["collections"]["sprints"]["id_prefix"] == "SPR"
 
@@ -28,7 +28,7 @@ def test_add_field(db, runner):
     assert result.exit_code == 0
     assert "Added field" in result.output
 
-    schema = yaml.safe_load((db / ".tekel" / "schema.yaml").read_text())
+    schema = json.loads((db / ".tekel" / "schema.json").read_text())
     field = schema["collections"]["tasks"]["fields"]["estimate"]
     assert field["type"] == "integer"
     assert field["min"] == 0
@@ -39,7 +39,7 @@ def test_add_field_required_with_default(db, runner):
     result = runner.invoke(main, ["schema", "add-field", "tasks", "team", "string", "--required", "--default", "core"])
     assert result.exit_code == 0
 
-    schema = yaml.safe_load((db / ".tekel" / "schema.yaml").read_text())
+    schema = json.loads((db / ".tekel" / "schema.json").read_text())
     field = schema["collections"]["tasks"]["fields"]["team"]
     assert field["required"] is True
     assert field["default"] == "core"
@@ -49,7 +49,7 @@ def test_add_field_enum_with_values(db, runner):
     result = runner.invoke(main, ["schema", "add-field", "tasks", "size", "enum", "--values", "S,M,L,XL"])
     assert result.exit_code == 0
 
-    schema = yaml.safe_load((db / ".tekel" / "schema.yaml").read_text())
+    schema = json.loads((db / ".tekel" / "schema.json").read_text())
     field = schema["collections"]["tasks"]["fields"]["size"]
     assert field["values"] == ["S", "M", "L", "XL"]
 
