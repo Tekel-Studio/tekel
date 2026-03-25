@@ -1,6 +1,6 @@
 {
   "name": "@tekel-studio/tekel",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Schema validation and query engine for flat-file YAML data",
   "repository": {
     "type": "git",

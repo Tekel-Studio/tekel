@@ -13,7 +13,9 @@
       "Bash(tekeldb delete:*)",
       "Bash(tekeldb schema:*)",
       "Bash(python -m pytest tests/ -v)",
-      "Bash(tekel --version)"
+      "Bash(tekel --version)",
+      "Bash(python -c \"import yaml; print\\(''pyyaml still installed''\\)\")",
+      "Bash(python -m pytest tests/ -q)"
     ]
   }
 }
